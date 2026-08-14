@@ -10,7 +10,7 @@ const userSchema=new mongoose.Schema({
         required:true
     },
     credits:{
-        trype:Number,
+        type:Number,
         default:100
     }
 },{timestamps:true})

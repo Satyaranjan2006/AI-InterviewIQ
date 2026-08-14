@@ -6,7 +6,7 @@ import User from "../models/user.model.js";
 export const googleAuth=async (req,res) => {
     try {
         const {name,email}=req.body
-        const user=await User.findOne({email})
+        let user=await User.findOne({email})
         //if this email not exist so we create a new user
 
         if(!user){
@@ -21,7 +21,7 @@ export const googleAuth=async (req,res) => {
 
         //storing the token in cookies
         res.cookie('token',token,{
-            http:true,
+            httpOnly:true,
             secure:false,
             sameSite:'strict',
             maxAge:7*24*60*60*1000
