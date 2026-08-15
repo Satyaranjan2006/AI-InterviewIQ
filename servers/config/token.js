@@ -4,7 +4,7 @@ const genToken=async (userId) => {
     //we have to create token
     try {
         const token=jwt.sign({
-            userid
+            userId
             
         },process.env.JWT_SECRET,{expiresIn:'7d'})
     } catch (error) {
