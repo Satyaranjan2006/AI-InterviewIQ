@@ -16,11 +16,11 @@ const App = () => {
    const getUser=async () => {
     try {
       const result=await axios.get(ServerUrl + '/api/user/current-user',{withCredentials:true})
-      console.log('Fetched user from backend:', result.data);
+      // console.log('Fetched user from backend:', result.data);
       dispatch(setUserData(result.data))
       
     } catch (error) {
-      console.error('Failed to get current user:', error.response?.data || error.message);
+      // console.error('Failed to get current user:', error.response?.data || error.message);
       dispatch(setUserData(null))
       
     }
