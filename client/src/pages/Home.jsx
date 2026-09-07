@@ -124,7 +124,7 @@ const Home = () => {
                 whileHover={{ rotate: 0, scale: 1.06 }}
                 className={`relative bg-white rounded-3xl border-2 border-green-100 hover:border-green-500 p-10 w-80 max-w[90%] shadow-md hover:shadow-2xl transition-all duration-300
               ${index === 0 ? "rotate-[-4deg]" : ""}
-              ${index === 0 ? "rotate-[3deg] md:-mt-6  shadow-xl" : ""}
+              ${index === 1 ? "rotate-[3deg] md:-mt-6  shadow-xl" : ""}
               ${index === 2 ? "rotate-[-3deg]" : ""}
               `}>
 
