@@ -10,7 +10,7 @@ export const analyzeResume = async (req, res) => {
             return res.status(400).json({ message: 'Resume Required' });
         }
 
-        //-----------------providing file path to whom -----------------
+        
         const filepath = req.file.path;
         //-----------------convert the filepath data to binary format-----------------
 
@@ -26,9 +26,16 @@ export const analyzeResume = async (req, res) => {
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
             const page = await pdf.getPage(pageNum)
+            //-----------------Extract text from each pages -----------------
             const content = await page.getTextContent();
 
             //-----------------from where items come-----------------
+            /* 
+            IF ANY ERROR WILL OCCUR THEN IT WILL BE PASTE INPLACE OF FOLLOWING LINE
+            const pageText = content.items
+             .map(item => item.str)
+              .join(' ');
+            */
             const pageText = content.items.map(item.map(item => item.str).join(' '));
             resumeText += pageText + '\n';
             //-----------------how this above line works -----------------
@@ -50,36 +57,36 @@ export const analyzeResume = async (req, res) => {
                 "skills":["skill1","skill2"]
                 }
                 `
-                
-            },{
-                role:"user",
-                content:resumeText
+
+            }, {
+                role: "user",
+                content: resumeText
             }
         ];
 
-        const aiResponse=await askAi(messages)
+        const aiResponse = await askAi(messages)
         //----------------- convert it to JSON-----------------
-        const parsed=JSON.parse(aiResponse);
-           //----------------- what is the function of unlinkSync() here-----------------
+        const parsed = JSON.parse(aiResponse);
+        //----------------- what is the function of unlinkSync() here-----------------
         fs.unlinkSync(filepath)
         //----------------- finally who will provide this data -----------------
         res.json({
-            role:parsed.role,
-            experience:parsed.experience,
-            projects:parsed.projects,
-            skills:parsed.skills,
+            role: parsed.role,
+            experience: parsed.experience,
+            projects: parsed.projects,
+            skills: parsed.skills,
             resumeText
         })
 
     } catch (error) {
         console.log(error);
 
-        if(req.file && fs.existsSync(req.file.path)){
+        if (req.file && fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
         }
         return res.status(500).json({
-            message:error.message
+            message: error.message
         })
-        
+
     }
 }
