@@ -3,6 +3,8 @@ import { motion } from "motion/react"
 import { useState } from 'react';
 import { FaMicrophoneAlt, FaUserTie } from "react-icons/fa";
 import { FaBriefcase, FaFileUpload, FaMicrophone, FaChartLine } from "react-icons/fa";
+import axios from 'axios';
+import { ServerUrl } from '../App';
 
 const Step1Setup = ({ onStart }) => {
   const [role, setRole] = useState('')
@@ -15,6 +17,39 @@ const Step1Setup = ({ onStart }) => {
   const [resumeFile, setResumeFile] = useState("");
   const [analysisDone, setAnalysisDone] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+
+    const handleUploadResume=async () => {
+      if(!resumeFile || analyzing) return;
+
+      setAnalyzing(true)
+
+      const formdata=new FormData();
+      formdata.append('resume',resumeFile)
+
+      try {
+        const result=await axios.post(ServerUrl+'/api/interview/resume',formdata,{withCredentials:true})
+
+        console.log(result.data);
+
+        setRole(result.data.role||'');
+        setExperience(result.data.experience || '');
+        setProjects(result.data.projects ||[]);
+        setSkills(result.data.skills ||[]);
+        setResumeText(result.data.resumeText ||'')
+        setAnalysisDone(true)
+
+  
+        setAnalyzing(false)
+        
+      } catch (error) {
+        console.log(error);
+        setAnalyzing(false)
+        
+        
+      }
+    }
+
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -108,7 +143,12 @@ const Step1Setup = ({ onStart }) => {
             </select>
 
             {!analysisDone && (
-              <motion.div className='border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-green-500 hover:bg-green-50 transition'>
+              <motion.div
+              // functionality when we click the windows will opened for file upload
+              whileHover={{scale:1.02}}
+              onClick={()=>document.getElementById('resumeUpload').click()}
+              
+              className='border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-green-500 hover:bg-green-50 transition'>
 
                 <FaFileUpload className='text-green-600 text-4xl mx-auto mb-3'/>
 
@@ -122,8 +162,34 @@ const Step1Setup = ({ onStart }) => {
                   {resumeFile ? resumeFile.name : 'Click  to upload resume (Optional)'}
                 </p>
 
+                {/* this button will execute if the resume file exist */}
+               { resumeFile && 
+               (<motion.button
+                whileHover={{scale:1.02}}
+                onClick={(e)=>{e.stopPropagation();handleUploadResume()}}
+
+                className='mt-4 bg-gray-900 text-white px-5 py-2 rounded-lg hover:bg-gray-800  transition'
+                >
+                  {analyzing ?'Analyzing...':'Analyze Resume'}
+                  
+                  </motion.button>)}
+
               </motion.div>
             )}
+
+            {/* creating a button for start interview,::NOTE:- if the role and experience is not present so this button will disabled */}
+
+            <motion.button 
+            disabled={!role ||!experience}
+            whileHover={{scale:1.03}}
+            whileTap={{scale:0.95}}
+
+            className='w-full disabled:bg-gray-600 bg-green-600 hover:bg-green-500 text-white py-3 rounded-full text-lg font-semibold transition duration-300 shadow-md'>
+              Start Interview
+
+
+            </motion.button>
+
 
           </div>
 

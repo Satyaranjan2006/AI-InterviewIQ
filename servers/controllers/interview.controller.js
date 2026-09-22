@@ -15,7 +15,7 @@ export const analyzeResume = async (req, res) => {
         //-----------------convert the filepath data to binary format-----------------
 
         const fileBuffer = await fs.promises.readFile(filepath)
-        const uint8Array = await Uint8Array(fileBuffer)
+        const uint8Array = await new Uint8Array(fileBuffer)
 
         //-----------------getting the pdf -----------------
         const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
@@ -36,7 +36,10 @@ export const analyzeResume = async (req, res) => {
              .map(item => item.str)
               .join(' ');
             */
-            const pageText = content.items.map(item.map(item => item.str).join(' '));
+           const pageText = content.items
+             .map(item => item.str)
+              .join(' ');
+            // const pageText = content.items.map(item.map(item => item.str).join(' '));
             resumeText += pageText + '\n';
             //-----------------how this above line works -----------------
         }
