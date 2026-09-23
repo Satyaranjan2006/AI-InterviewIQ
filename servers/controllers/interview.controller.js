@@ -2,6 +2,7 @@
 import fs from 'fs'
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { askAi } from '../services/openRouter.services.js';
+//import { json } from 'stream/consumers';
 
 
 export const analyzeResume = async (req, res) => {
@@ -10,7 +11,7 @@ export const analyzeResume = async (req, res) => {
             return res.status(400).json({ message: 'Resume Required' });
         }
 
-        
+
         const filepath = req.file.path;
         //-----------------convert the filepath data to binary format-----------------
 
@@ -36,9 +37,9 @@ export const analyzeResume = async (req, res) => {
              .map(item => item.str)
               .join(' ');
             */
-           const pageText = content.items
-             .map(item => item.str)
-              .join(' ');
+            const pageText = content.items
+                .map(item => item.str)
+                .join(' ');
             // const pageText = content.items.map(item.map(item => item.str).join(' '));
             resumeText += pageText + '\n';
             //-----------------how this above line works -----------------
@@ -52,6 +53,9 @@ export const analyzeResume = async (req, res) => {
                 role: 'system',
                 content: `
                 Extract structured data from resume
+                Do not use markdown
+                Do not use  code fences.
+                Do not add explation beforeor after the JSON
                 Return strictly JSON:
                 {
                 "role":"string",
@@ -68,6 +72,12 @@ export const analyzeResume = async (req, res) => {
         ];
 
         const aiResponse = await askAi(messages)
+
+        // if the mark down json comes then it will remove markdown.
+        const cleanResponse = aiResponse
+            .replace(/```json/g, '')
+            .replace(/```/g, '')
+            .trim();
         //----------------- convert it to JSON-----------------
         const parsed = JSON.parse(aiResponse);
         //----------------- what is the function of unlinkSync() here-----------------
