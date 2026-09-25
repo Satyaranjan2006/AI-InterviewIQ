@@ -156,7 +156,7 @@ const Step1Setup = ({ onStart }) => {
                 accept='application/pdf'
                 id='resumeUpload'
                 className='hidden'
-                onChange={(e)=>setResumeFile(e.target.files[0])}
+                onChange={(e)=>setResumeFile(e.target.files?.[0])}
                 />
                 <p className='text-gray-600 font-medium'>
                   {resumeFile ? resumeFile.name : 'Click  to upload resume (Optional)'}
@@ -193,11 +193,11 @@ const Step1Setup = ({ onStart }) => {
                   <div>
                     <p className='font-medium text-gray-700 mb-1'>Projects:</p>
 
-                    <div className='list-disc list-inside text-gray-600 space-y-1'>
+                    <ul className='list-disc list-inside text-gray-600 space-y-1'>
                       {projects.map((p,i)=>(
                         <li key={i} >{p}</li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
                 )}
 

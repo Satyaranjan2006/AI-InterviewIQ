@@ -1,4 +1,4 @@
-import mongoose, { Mongoose } from "mongoose";
+import mongoose from 'mongoose'
 
 
 const questionsSchema=new mongoose.Schema({
@@ -39,7 +39,7 @@ const interviewSchema= new mongoose.Schema({
         required:true
     },mode:{
         type:String,
-        enum:['HR','technical'],
+        enum:['HR','Technical'],
         required:true
     },
     resumeText:{
@@ -61,7 +61,7 @@ const interviewSchema= new mongoose.Schema({
 
 },{timestamps:true})
 
-const Interview=mongoose.Schema('Interview',interviewSchema)
+const Interview=mongoose.model('Interview',interviewSchema)
 
 
 export default Interview
