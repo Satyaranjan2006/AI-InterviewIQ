@@ -110,7 +110,7 @@ export const generateQuestion = async (req, res) => {
     try {
 
         //the rest data expects role experience comes from ?
-        const { role, experience, mode, resumeText, projects, skills } = req.body
+        let { role, experience, mode, resumeText, projects, skills } = req.body
 
         role = role?.trim();
         experience = experience?.trim();
@@ -256,7 +256,11 @@ Make questions based on the candidate's role, experience,interviewMode, projects
 
 
     } catch (error) {
+        
+        
         return res.status(500).json({
+           
+            
             message:`failed to create interview ${error}`
         })
     }
@@ -400,14 +404,48 @@ export const finishInterview=async(req,res)=>{
         let totalCommunication=0;
         let totalCorrectness=0;
 
-        interviewquestions.forEach((q)=>{
+        interview.questions.forEach((q)=>{
             totalScore+=q.score ||0;
             totalConfidence+=q.confidence ||0;
             totalCommunication+=q.communication ||0;
             totalCorrectness+=q.correctness ||0;
         })
-        const finalScore=totalQuestions
-    } catch (error) {
+        //finding totalscore after interview
+        const finalScore=totalQuestions? totalScore/totalQuestions :0;
+
+        //finding total confidence
+        const avgConfidence=totalQuestions ? totalConfidence/totalQuestions:0;
         
+        //finding avarage communication
+        const avgCommunication=totalQuestions ? totalCommunication/totalQuestions:0;
+
+        //finding average correctness
+        const avgCorrrectness=totalQuestions ? totalCorrectness/totalQuestions:0;
+
+        interview.finalScore=finalScore;
+        interview.status="completed"
+
+        await interview.save()
+
+        return res.status(200).json({
+            finalScore:Number(finalScore.toFixed(1)),
+            confidence:Number(avgConfidence.toFixed(1)),
+            communication:Number(avgCommunication.toFixed(1)),
+            correctness:Number(avgCorrrectness.toFixed(1)),
+            questionWiseScore:interview.questions.map((q)=>({
+                question:q.question,
+                score:q.score ||0,
+                feedback:q.feedback || "",
+                confidence:q.confidence || 0,
+                communication:q.communication ||0,
+                correctness :q.correctness ||0,
+            }))
+        })
+
+
+    } catch (error) {
+        return res.status(500).json({
+            message:`failed to finish Interview ${error}`
+        })
     }
 }
