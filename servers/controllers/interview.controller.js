@@ -378,3 +378,36 @@ Return ONLY valid JSON in this format:
         })
     }
 }
+
+//in this controller we will analyze the final result
+
+export const finishInterview=async(req,res)=>{
+    try {
+        const {interviewId}=req.body
+        const interview=await Interview.findById(interviewId)
+        //here we will get the interview by the specific interview id
+
+        if(!interview){
+            return res.status(400).json({
+                message:'failed to find Interview'
+            })
+        }
+
+        const totalQuestions=interview.questions.length;
+
+        let totalScore=0;
+        let totalConfidence=0;
+        let totalCommunication=0;
+        let totalCorrectness=0;
+
+        interviewquestions.forEach((q)=>{
+            totalScore+=q.score ||0;
+            totalConfidence+=q.confidence ||0;
+            totalCommunication+=q.communication ||0;
+            totalCorrectness+=q.correctness ||0;
+        })
+        const finalScore=totalQuestions
+    } catch (error) {
+        
+    }
+}
