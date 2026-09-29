@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setUserData } from '../redux/userSlice';
 import { useNavigate } from 'react-router-dom';
 
+
 const Step1Setup = ({ onStart }) => {
   
   const{userData}=useSelector((state)=>state.user)
@@ -273,6 +274,7 @@ const Step1Setup = ({ onStart }) => {
 
     </motion.div>
   )
-}
+
+ }
 
 export default Step1Setup
