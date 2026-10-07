@@ -106,6 +106,14 @@ const Step2Interview = ({ interviewData, onFinish }) => {
               className='flex-1 bg-gradient-to-r from-emerald-600 to-teal-500 text-white py-3 sm:py-4 rounded-2xl shadow-lg hover:opacity-90 transit font-semibold'>
               Submit Answer
             </motion.button>
+
+            {/* extra button */}
+
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              className='flex-1 bg-gradient-to-r from-emerald-600 to-teal-500 text-white py-3 sm:py-4 rounded-2xl shadow-lg hover:opacity-90 transit font-semibold'>
+              Submit Answer
+            </motion.button>
           </div>
 
         </div>
