@@ -13,7 +13,7 @@ const Step2Interview = ({ interviewData, onFinish }) => {
 
   const [isMicOn, setIsMicOn] = useState(true);
   const recognitionRef = useRef(null);
-  
+
   const [isAIPlaying, setIsAIPlaying] = useState(false);
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -27,8 +27,8 @@ const Step2Interview = ({ interviewData, onFinish }) => {
   const [voiceGender, setVoiceGender] = useState("female");
   const [subtitle, setSubtitle] = useState("")
 
-  const videoRef=useRef(null);
-  const currentQuestion=questions[currentIndex]
+  const videoRef = useRef(null);
+  const currentQuestion = questions[currentIndex]
 
   return (
     <div className='min-h-screen bg-linear-to-br from-emerald-50 via-white to-teal-100 flex items-center justify-center p-4 sm:p-6 '>
@@ -85,7 +85,7 @@ const Step2Interview = ({ interviewData, onFinish }) => {
 
           <div className='relative mb-6 bg-gray-50 p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-sm'>
             <p className='text-xs sm:text-sm text-gray-400 mb-2'>
-              Question {currentIndex+1}of {questions.length}
+              Question {currentIndex + 1}of {questions.length}
             </p>
             <div className='text-base sm:text-lg font-semibold text-gray-800 loading-relaxed'>{currentQuestion?.question}</div>
           </div>

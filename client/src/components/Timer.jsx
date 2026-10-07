@@ -20,5 +20,6 @@ const Timer = ({timeLeft,totalTime}) => {
     </div>
   )
 }
+//installation setup:-npm i react-circular progressbar
 
 export default Timer
