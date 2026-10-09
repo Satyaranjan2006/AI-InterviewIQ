@@ -3,9 +3,11 @@ import maleVideo from '../assets/Videos-20260808T142004Z-1-001/Videos/male-ai.mp
 import femaleVideo from '../assets/Videos-20260808T142004Z-1-001/Videos/female-ai.mp4'
 import Timer from './Timer'
 import { motion } from "motion/react"
-import { FaMicrophoneAlt } from "react-icons/fa";
+import { FaMicrophone, FaMicrophoneAlt } from "react-icons/fa";
 import { FaMicrophoneSlash } from "react-icons/fa";
 import axios from 'axios'
+import { ServerUrl } from '../App';
+import { BsArrowLeft } from 'react-icons/bs'
 
 const Step2Interview = ({ interviewData, onFinish }) => {
   const { interviewId, questions, userName } = interviewData
@@ -94,7 +96,7 @@ const Step2Interview = ({ interviewData, onFinish }) => {
 
   const speakText = (text) => {
     return new Promise((resolve) => {
-      if (!window.speechSynthesis || !setSelectedVoice) {
+      if (!window.speechSynthesis || !selectedVoice) {
         resolve()
         return;
       }
@@ -127,7 +129,7 @@ const Step2Interview = ({ interviewData, onFinish }) => {
         videoRef.current.currentTime = 0;
         setIsAIPlaying(false)
 
-        if(isMicOn){
+        if (isMicOn) {
           startMic()
         }
 
@@ -144,16 +146,16 @@ const Step2Interview = ({ interviewData, onFinish }) => {
     })
   }
 
-   //--------------------? ------------------
+  //--------------------? ------------------
   useEffect(() => {
-    if(!selectedVoice){
+    if (!selectedVoice) {
       return
     }
 
     //creating a function for intro Phase
 
-    const runIntro=async()=>{
-      if(isIntroPhase){  //if true
+    const runIntro = async () => {
+      if (isIntroPhase) {  //if true
         await speakText(
           `Hi ${userName}, it's great to meet you today.I hope you're feeling confident and ready.`
         )
@@ -163,83 +165,155 @@ const Step2Interview = ({ interviewData, onFinish }) => {
 
         setIsIntroPhase(false)
 
-      }else if(currentQuestion){
-        await new Promise(r=>setTimeout(r,800));
+      } else if (currentQuestion) {
+        await new Promise(r => setTimeout(r, 800));
         //doubt on the above code base
 
-        if(currentIndex===questions.length-1){
+        if (currentIndex === questions.length - 1) {
           await speakText("Alright,this one might be a bit more challenging.")
         }
         await speakText(currentQuestion.question)
 
-        if(isMicOn){
+        if (isMicOn) {
           startMic()
         }
       }
     }
     runIntro()
-  }, [selectedVoice,isIntroPhase,currentIndex])
+  }, [selectedVoice, isIntroPhase, currentIndex])
 
   //  ------------------? ----------------
   useEffect(() => {
-    if(isIntroPhase) return;
-    if(!currentQuestion) return;
+    if (isIntroPhase) return;
+    if (!currentQuestion) return;
+    if (isSubmitting) return;
 
-    const timer=setInterval(()=>{
-      setTimeLeft((prev)=>{
-        if(prev<=1){
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
           clearInterval(timer)
           return 0;
         }
-        return prev-1;
+        return prev - 1;
       })
-    },1000)
-    return ()=>clearInterval(timer)
-  }, [isIntroPhase,currentIndex])
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [isIntroPhase, currentIndex, isSubmitting])
 
   //converting voice  to text
 
   useEffect(() => {
-    if(!("webkitSpeechRecognition" in window )) return;
+    if (!("webkitSpeechRecognition" in window)) return;
 
-    const recognition=new window.webkitSpeechRecognition()
-    recognition.lang='en-US';
-    recognition.continuous=true;
-    recognition.interimResults=false;
+    const recognition = new window.webkitSpeechRecognition()
+    recognition.lang = 'en-US';
+    recognition.continuous = true;
+    recognition.interimResults = false;
 
-    recognition.onresult=(event)=>{
-      const transcript=event.results[event.results.length-1][0].transcript;
+    recognition.onresult = (event) => {
+      const transcript = event.results[event.results.length - 1][0].transcript;
 
-      setAnswer((prev)=>prev+ " "+ transcript);
+      setAnswer((prev) => prev + " " + transcript);
     }
-    recognitionRef.current=recognition
+    recognitionRef.current = recognition
   }, [])
 
-  const startMic=()=>{
-    if(recognitionRef.current && !isAIPlaying){
+  const startMic = () => {
+    if (recognitionRef.current && !isAIPlaying) {
       try {
         recognitionRef.current.start();
       } catch (error) {
-        
+
       }
     }
   }
 
-  const stopMic=()=>{
-    if(recognitionRef.current){
+  const stopMic = () => {
+    if (recognitionRef.current) {
       recognitionRef.current.stop()
     }
   }
-  
- const toggleMic=()=>{
-  if(isMicOn){
-    stopMic()
-  }else{
-    startMic()
-  }
-  setIsMicOn(!isMicOn)
- }
 
+  const toggleMic = () => {
+    if (isMicOn) {
+      stopMic()
+    } else {
+      startMic()
+    }
+    setIsMicOn(!isMicOn)
+  }
+
+
+  const submitAnswer = async () => {
+    if (isSubmitting) return;
+    stopMic()
+    setIsSubmitting(true)
+
+    try {
+      const result = await axios.post(ServerUrl + '/api/interview/submit-answer', {
+        interviewId,
+        questionIndex: currentIndex,
+        answer,
+        timeTaken: currentQuestion.timeLimit - timeLeft
+      }, { withCredentials: true })
+
+      setFeedback(result.data.feedback)
+      speakText(result.data.feedback)
+      setIsSubmitting(false)
+
+    } catch (error) {
+      console.log(error);
+
+    }
+  }
+
+  const handleNext = async () => {
+    setAnswer("")
+    setFeedback("")
+
+    if (currentIndex + 1 >= questions.length) {
+      finishInterview();
+      return;
+    }
+    await speakText("Alright,let's move to the next question.")
+
+    setCurrentIndex(currentIndex + 1);
+    setTimeout(() => {
+      if (isMicOn) startMic();
+    }, 500)
+
+  }
+
+  const finishInterview = async () => {
+    stopMic()
+    setIsMicOn(false)
+    try {
+      const result = await axios.post(ServerUrl + "/api/interview/finish", {
+        interviewId
+      }, { withCredentials: true })
+    } catch (error) {
+      console.log(error);
+
+    }
+  }
+
+  useEffect(() => {
+    if(isIntroPhase) return;
+    if(!currentQuestion) return;
+    if(timeLeft===0 && !isSubmitting &&!feedback){
+      handleSubmit();
+    }
+  }, [timeLeft])
+
+  useEffect(() => {
+   return()=>{
+    if(recognitionRef.current){
+      recognitionRef.current.stop()
+      recognitionRef.current.abort()
+    }
+    window.speechSynthesis.cancel()
+   }
+  }, [])
   
   
 
@@ -284,7 +358,7 @@ const Step2Interview = ({ interviewData, onFinish }) => {
             <div className='h-px bg-gray-200'></div>
 
             <div className='flex justify-center'>
-              <Timer timeLeft={timeLeft} totalTime={currentQuestion?.timeLimit } />
+              <Timer timeLeft={timeLeft} totalTime={currentQuestion?.timeLimit} />
             </div>
 
             {/* separater */}
@@ -309,7 +383,7 @@ const Step2Interview = ({ interviewData, onFinish }) => {
         <div className='flex-1 flex flex-col p-4 sm:p-6 md:p-8 relative'>
           <h2 className='text-xl sm:text-2xl font-bold text-emerald-600 mb-6'> AI Smart Interview</h2>
 
-          {!isIntroPhase &&(<div className='relative mb-6 bg-gray-50 p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-sm'>
+          {!isIntroPhase && (<div className='relative mb-6 bg-gray-50 p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-sm'>
             <p className='text-xs sm:text-sm text-gray-400 mb-2'>
               Question {currentIndex + 1}of {questions.length}
             </p>
@@ -318,29 +392,46 @@ const Step2Interview = ({ interviewData, onFinish }) => {
           <textarea
 
             placeholder='Type your answer here...'
-            onChange={(e)=>setAnswer(e.target.value)}
+            onChange={(e) => setAnswer(e.target.value)}
             value={answer}
             className='flex-1 bg-gray-100 p-4 sm:p-6 rounded-2xl resize-none outline-none border border-gray-200 focus:ring-2 focus:ring-emerald-500 transition text-gray-800' />
           {/* now creating a button */}
-          <div className='flex items-center gap-4 mt-6'>
+          {!feedback ? (<div className='flex items-center gap-4 mt-6'>
             <motion.button
-            onClick={toggleMic}
+              onClick={toggleMic}
               whileTap={{ scale: 0.9 }}
               className='w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-full bg-black text-white shadow-lg'>
-              <FaMicrophoneAlt size={20} />
+              {isMicOn ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}
 
             </motion.button  >
 
             <motion.button
+              onClick={submitAnswer}
+              disabled={isSubmitting}
               whileTap={{ scale: 0.9 }}
-              className='flex-1 bg-gradient-to-r from-emerald-600 to-teal-500 text-white py-3 sm:py-4 rounded-2xl shadow-lg hover:opacity-90 transit font-semibold'>
-              Submit Answer
+              className='flex-1 bg-gradient-to-r from-emerald-600 to-teal-500 text-white py-3 sm:py-4 rounded-2xl shadow-lg hover:opacity-90 transit font-semibold disabled:bg-gray-500'>
+              {isSubmitting ? "Submiting..." : "Submit Answer"}
             </motion.button>
 
             {/* extra button */}
 
-            
-          </div>
+
+          </div>) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className='mt-6 bg-emerald-50 border border-emerald-200 p-5  rounded-2xl shadow-sm'>
+              <p className='text-emerald-700 font-medium mb-4'>{feedback}</p>
+
+              <button
+                onClick={handleNext}
+                className='w-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white py-3 rounded-xl shadow-md hover:opacity-90 transition flex items-center justify-center gap-1'>
+                Next Question <BsArrowLeft size={18} />
+              </button>
+
+
+            </motion.div>
+          )}
 
         </div>
 
